@@ -51,6 +51,14 @@ The catalog defines 36 components in 4 categories:
 - Status: **Type-checked and built successfully**
 - Imports catalog from `@json-render/core/standard-catalog`
 
+### @json-render/antd (new - this branch)
+- Ant Design v6.3.2 + @ant-design/icons v6.1.0
+- 36 components, all implemented using factory hooks from the start
+- Entry: `packages/antd/`
+- Status: **Type-checked and built successfully**
+- Imports catalog from `@json-render/core/standard-catalog`
+- 1025 lines in components.tsx (smallest of all 4 packages — factory hooks used from day 1)
+
 ## Design System Roadmap
 
 | Order | System | Status |
@@ -58,9 +66,9 @@ The catalog defines 36 components in 4 categories:
 | 1 | shadcn (Radix + Tailwind) | Existing |
 | 2 | MUI (Material UI v7) | Done |
 | 3 | Carbon (@carbon/react v1.102) | Done |
-| 4 | Bootstrap (react-bootstrap) | Planned |
-| 5 | Lightning (Salesforce) | Planned |
-| 6 | tw-elements | Planned |
+| 4 | Ant Design (antd v6) | Done |
+| 5 | Bootstrap (react-bootstrap) | Planned |
+| 6 | Mantine | Planned |
 
 ## How It Works
 
@@ -102,7 +110,7 @@ const { registry } = defineRegistry(catalog, {
 
 ## Factory Hooks (Boilerplate Reduction)
 
-All 3 design system packages had ~60% repeated boilerplate in `components.tsx` — the same bound-state + validation hook pattern copy-pasted across every form component.
+All design system packages had ~60% repeated boilerplate in `components.tsx` — the same bound-state + validation hook pattern copy-pasted across every form component.
 
 Two factory hooks now live in `@json-render/react` (`packages/react/src/component-factories.ts`):
 
@@ -111,13 +119,14 @@ Two factory hooks now live in `@json-render/react` (`packages/react/src/componen
 | `useBoundField<T>` | `useBoundProp` + `useState` + `isBound` pattern (5 lines → 1 call) | Tabs, Slider, Toggle, ToggleGroup, ButtonGroup |
 | `useFormField<T>` | `useBoundField` + `useFieldValidation` pattern (10 lines → 1 call) | Input, Textarea, Select, Checkbox, Radio, Switch |
 
-All 3 packages (shadcn, MUI, Carbon) have been refactored — 12 components per package now use the factory hooks. Line counts after refactoring:
+All 4 packages use the factory hooks — shadcn, MUI, and Carbon were refactored; Ant Design was built with them from the start. Line counts:
 
-| Package | Before | After | Saved |
-|---------|--------|-------|-------|
-| shadcn  | 1247   | 1188  | 59    |
-| MUI     | 1204   | 1143  | 61    |
-| Carbon  | 1191   | 1130  | 61    |
+| Package | Lines | Notes |
+|---------|-------|-------|
+| shadcn  | 1188  | Refactored (was 1247) |
+| MUI     | 1143  | Refactored (was 1204) |
+| Carbon  | 1130  | Refactored (was 1191) |
+| Ant Design | 1025 | Built with factories from start |
 
 The `design-system-builder` skill has been updated to teach agents the factory hook patterns.
 
@@ -132,13 +141,14 @@ The `design-system-builder` skill has been updated to teach agents the factory h
 - [x] Build `useBoundField` and `useFormField` factory hooks in `@json-render/react`
 - [x] Refactor shadcn, MUI, and Carbon to use factory hooks
 - [x] Update design-system-builder skill with factory hook patterns
+- [x] Add Ant Design as the 4th design system (1025 lines, built with factory hooks)
 
 ## Next Steps
 
 - [ ] Create individual skills per design system (MUI first)
-- [ ] Add Bootstrap as the next design system
+- [ ] Add Bootstrap or Mantine as the next design system
 - [ ] Migrate shadcn catalog to also re-export from standard-catalog
-- [ ] Add an example app that demos swapping between shadcn and MUI
+- [ ] Add an example app that demos swapping between design systems
 - [ ] Consider a `npx @json-render/create-design-system <name>` CLI tool
 
 ## Environment Notes
