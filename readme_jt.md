@@ -44,14 +44,21 @@ The catalog defines 36 components in 4 categories:
 - Status: **Type-checked and built successfully**
 - Imports catalog from `@json-render/core/standard-catalog`
 
+### @json-render/carbon (new - this branch)
+- IBM Carbon Design System (`@carbon/react` v1.102)
+- 36 components, all implemented
+- Entry: `packages/carbon/`
+- Status: **Type-checked and built successfully**
+- Imports catalog from `@json-render/core/standard-catalog`
+
 ## Design System Roadmap
 
 | Order | System | Status |
 |-------|--------|--------|
 | 1 | shadcn (Radix + Tailwind) | Existing |
-| 2 | **MUI (Material UI)** | **In progress** |
-| 3 | Bootstrap (react-bootstrap) | Planned |
-| 4 | Carbon (@carbon/react) | Planned |
+| 2 | MUI (Material UI v7) | Done |
+| 3 | Carbon (@carbon/react v1.102) | Done |
+| 4 | Bootstrap (react-bootstrap) | Planned |
 | 5 | Lightning (Salesforce) | Planned |
 | 6 | tw-elements | Planned |
 
