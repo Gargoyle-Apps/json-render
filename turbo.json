@@ -1,22 +1,13 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "tui",
-  "globalEnv": ["AI_GATEWAY_MODEL", "KV_REST_API_URL", "KV_REST_API_TOKEN", "RATE_LIMIT_PER_MINUTE", "RATE_LIMIT_PER_DAY"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
-    },
-    "lint": {
-      "dependsOn": ["^lint"]
+      "outputs": ["dist/**"]
     },
     "check-types": {
       "dependsOn": ["^build"]
-    },
-    "dev": {
-      "cache": false,
-      "persistent": true
     }
   }
 }
