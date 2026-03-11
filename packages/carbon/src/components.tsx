@@ -3,8 +3,9 @@
 import { useState, useRef } from "react";
 import {
   useBoundProp,
+  useBoundField,
+  useFormField,
   useStateBinding,
-  useFieldValidation,
   type BaseComponentProps,
 } from "@json-render/react";
 
@@ -199,16 +200,11 @@ export const carbonComponents = {
     emit,
   }: BaseComponentProps<CarbonProps<"Tabs">>) => {
     const tabs = props.tabs ?? [];
-    const [boundValue, setBoundValue] = useBoundProp<string>(
+    const [value, setValue] = useBoundField<string>(
       props.value as string | undefined,
       bindings?.value,
-    );
-    const [localValue, setLocalValue] = useState(
       props.defaultValue ?? tabs[0]?.value ?? "",
     );
-    const isBound = !!bindings?.value;
-    const value = isBound ? (boundValue ?? tabs[0]?.value ?? "") : localValue;
-    const setValue = isBound ? setBoundValue : setLocalValue;
     const selectedIndex = Math.max(
       0,
       tabs.findIndex((t) => t.value === value),
@@ -633,21 +629,16 @@ export const carbonComponents = {
     bindings,
     emit,
   }: BaseComponentProps<CarbonProps<"Input">>) => {
-    const [boundValue, setBoundValue] = useBoundProp<string>(
-      props.value as string | undefined,
-      bindings?.value,
-    );
-    const [localValue, setLocalValue] = useState("");
-    const isBound = !!bindings?.value;
-    const value = isBound ? (boundValue ?? "") : localValue;
-    const setValue = isBound ? setBoundValue : setLocalValue;
-    const validateOn = props.validateOn ?? "blur";
-
-    const hasValidation = !!(bindings?.value && props.checks?.length);
-    const { errors, validate } = useFieldValidation(
-      bindings?.value ?? "",
-      hasValidation ? { checks: props.checks ?? [], validateOn } : undefined,
-    );
+    const { value, setValue, errors, validate, hasValidation, validateOn } =
+      useFormField<string>(
+        props.value as string | undefined,
+        bindings?.value,
+        "",
+        {
+          checks: props.checks ?? undefined,
+          validateOn: props.validateOn ?? "blur",
+        },
+      );
 
     return (
       <TextInput
@@ -680,21 +671,16 @@ export const carbonComponents = {
     props,
     bindings,
   }: BaseComponentProps<CarbonProps<"Textarea">>) => {
-    const [boundValue, setBoundValue] = useBoundProp<string>(
-      props.value as string | undefined,
-      bindings?.value,
-    );
-    const [localValue, setLocalValue] = useState("");
-    const isBound = !!bindings?.value;
-    const value = isBound ? (boundValue ?? "") : localValue;
-    const setValue = isBound ? setBoundValue : setLocalValue;
-    const validateOn = props.validateOn ?? "blur";
-
-    const hasValidation = !!(bindings?.value && props.checks?.length);
-    const { errors, validate } = useFieldValidation(
-      bindings?.value ?? "",
-      hasValidation ? { checks: props.checks ?? [], validateOn } : undefined,
-    );
+    const { value, setValue, errors, validate, hasValidation, validateOn } =
+      useFormField<string>(
+        props.value as string | undefined,
+        bindings?.value,
+        "",
+        {
+          checks: props.checks ?? undefined,
+          validateOn: props.validateOn ?? "blur",
+        },
+      );
 
     return (
       <TextArea
@@ -722,24 +708,19 @@ export const carbonComponents = {
     bindings,
     emit,
   }: BaseComponentProps<CarbonProps<"Select">>) => {
-    const [boundValue, setBoundValue] = useBoundProp<string>(
-      props.value as string | undefined,
-      bindings?.value,
-    );
-    const [localValue, setLocalValue] = useState<string>("");
-    const isBound = !!bindings?.value;
-    const value = isBound ? (boundValue ?? "") : localValue;
-    const setValue = isBound ? setBoundValue : setLocalValue;
+    const { value, setValue, errors, validate, hasValidation, validateOn } =
+      useFormField<string>(
+        props.value as string | undefined,
+        bindings?.value,
+        "",
+        {
+          checks: props.checks ?? undefined,
+          validateOn: props.validateOn ?? "change",
+        },
+      );
     const rawOptions = props.options ?? [];
     const options = rawOptions.map((opt) =>
       typeof opt === "string" ? opt : String(opt ?? ""),
-    );
-    const validateOn = props.validateOn ?? "change";
-
-    const hasValidation = !!(bindings?.value && props.checks?.length);
-    const { errors, validate } = useFieldValidation(
-      bindings?.value ?? "",
-      hasValidation ? { checks: props.checks ?? [], validateOn } : undefined,
     );
 
     return (
@@ -772,20 +753,21 @@ export const carbonComponents = {
     bindings,
     emit,
   }: BaseComponentProps<CarbonProps<"Checkbox">>) => {
-    const [boundChecked, setBoundChecked] = useBoundProp<boolean>(
+    const {
+      value: checked,
+      setValue: setChecked,
+      errors,
+      validate,
+      hasValidation,
+      validateOn,
+    } = useFormField<boolean>(
       props.checked as boolean | undefined,
       bindings?.checked,
-    );
-    const [localChecked, setLocalChecked] = useState(!!props.checked);
-    const isBound = !!bindings?.checked;
-    const checked = isBound ? (boundChecked ?? false) : localChecked;
-    const setChecked = isBound ? setBoundChecked : setLocalChecked;
-
-    const validateOn = props.validateOn ?? "change";
-    const hasValidation = !!(bindings?.checked && props.checks?.length);
-    const { errors, validate } = useFieldValidation(
-      bindings?.checked ?? "",
-      hasValidation ? { checks: props.checks ?? [], validateOn } : undefined,
+      !!props.checked,
+      {
+        checks: props.checks ?? undefined,
+        validateOn: props.validateOn ?? "change",
+      },
     );
 
     return (
@@ -824,21 +806,16 @@ export const carbonComponents = {
     const options = rawOptions.map((opt) =>
       typeof opt === "string" ? opt : String(opt ?? ""),
     );
-    const [boundValue, setBoundValue] = useBoundProp<string>(
-      props.value as string | undefined,
-      bindings?.value,
-    );
-    const [localValue, setLocalValue] = useState(options[0] ?? "");
-    const isBound = !!bindings?.value;
-    const value = isBound ? (boundValue ?? "") : localValue;
-    const setValue = isBound ? setBoundValue : setLocalValue;
-
-    const validateOn = props.validateOn ?? "change";
-    const hasValidation = !!(bindings?.value && props.checks?.length);
-    const { errors, validate } = useFieldValidation(
-      bindings?.value ?? "",
-      hasValidation ? { checks: props.checks ?? [], validateOn } : undefined,
-    );
+    const { value, setValue, errors, validate, hasValidation, validateOn } =
+      useFormField<string>(
+        props.value as string | undefined,
+        bindings?.value,
+        options[0] ?? "",
+        {
+          checks: props.checks ?? undefined,
+          validateOn: props.validateOn ?? "change",
+        },
+      );
 
     return (
       <FormGroup legendText={props.label ?? ""}>
@@ -878,20 +855,21 @@ export const carbonComponents = {
     bindings,
     emit,
   }: BaseComponentProps<CarbonProps<"Switch">>) => {
-    const [boundChecked, setBoundChecked] = useBoundProp<boolean>(
+    const {
+      value: checked,
+      setValue: setChecked,
+      errors,
+      validate,
+      hasValidation,
+      validateOn,
+    } = useFormField<boolean>(
       props.checked as boolean | undefined,
       bindings?.checked,
-    );
-    const [localChecked, setLocalChecked] = useState(!!props.checked);
-    const isBound = !!bindings?.checked;
-    const checked = isBound ? (boundChecked ?? false) : localChecked;
-    const setChecked = isBound ? setBoundChecked : setLocalChecked;
-
-    const validateOn = props.validateOn ?? "change";
-    const hasValidation = !!(bindings?.checked && props.checks?.length);
-    const { errors, validate } = useFieldValidation(
-      bindings?.checked ?? "",
-      hasValidation ? { checks: props.checks ?? [], validateOn } : undefined,
+      !!props.checked,
+      {
+        checks: props.checks ?? undefined,
+        validateOn: props.validateOn ?? "change",
+      },
     );
 
     return (
@@ -924,14 +902,11 @@ export const carbonComponents = {
     bindings,
     emit,
   }: BaseComponentProps<CarbonProps<"Slider">>) => {
-    const [boundValue, setBoundValue] = useBoundProp<number>(
+    const [value, setValue] = useBoundField<number>(
       props.value as number | undefined,
       bindings?.value,
+      props.min ?? 0,
     );
-    const [localValue, setLocalValue] = useState(props.min ?? 0);
-    const isBound = !!bindings?.value;
-    const value = isBound ? (boundValue ?? props.min ?? 0) : localValue;
-    const setValue = isBound ? setBoundValue : setLocalValue;
 
     return (
       <CarbonSlider
@@ -1023,14 +998,11 @@ export const carbonComponents = {
     bindings,
     emit,
   }: BaseComponentProps<CarbonProps<"Toggle">>) => {
-    const [boundPressed, setBoundPressed] = useBoundProp<boolean>(
+    const [pressed, setPressed] = useBoundField<boolean>(
       props.pressed as boolean | undefined,
       bindings?.pressed,
+      props.pressed ?? false,
     );
-    const [localPressed, setLocalPressed] = useState(props.pressed ?? false);
-    const isBound = !!bindings?.pressed;
-    const pressed = isBound ? (boundPressed ?? false) : localPressed;
-    const setPressed = isBound ? setBoundPressed : setLocalPressed;
 
     return (
       <CarbonButton
@@ -1052,14 +1024,11 @@ export const carbonComponents = {
     emit,
   }: BaseComponentProps<CarbonProps<"ToggleGroup">>) => {
     const items = props.items ?? [];
-    const [boundValue, setBoundValue] = useBoundProp<string>(
+    const [value, setValue] = useBoundField<string>(
       props.value as string | undefined,
       bindings?.value,
+      items[0]?.value ?? "",
     );
-    const [localValue, setLocalValue] = useState(items[0]?.value ?? "");
-    const isBound = !!bindings?.value;
-    const value = isBound ? (boundValue ?? "") : localValue;
-    const setValue = isBound ? setBoundValue : setLocalValue;
     const isMultiple = props.type === "multiple";
 
     if (isMultiple) {
@@ -1111,14 +1080,11 @@ export const carbonComponents = {
     emit,
   }: BaseComponentProps<CarbonProps<"ButtonGroup">>) => {
     const buttons = props.buttons ?? [];
-    const [boundSelected, setBoundSelected] = useBoundProp<string>(
+    const [value, setValue] = useBoundField<string>(
       props.selected as string | undefined,
       bindings?.selected,
+      buttons[0]?.value ?? "",
     );
-    const [localValue, setLocalValue] = useState(buttons[0]?.value ?? "");
-    const isBound = !!bindings?.selected;
-    const value = isBound ? (boundSelected ?? "") : localValue;
-    const setValue = isBound ? setBoundSelected : setLocalValue;
 
     return (
       <div style={{ display: "inline-flex", gap: "1px" }}>

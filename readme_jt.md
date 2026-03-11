@@ -100,6 +100,27 @@ const { registry } = defineRegistry(catalog, {
 <Renderer spec={spec} registry={registry} />
 ```
 
+## Factory Hooks (Boilerplate Reduction)
+
+All 3 design system packages had ~60% repeated boilerplate in `components.tsx` — the same bound-state + validation hook pattern copy-pasted across every form component.
+
+Two factory hooks now live in `@json-render/react` (`packages/react/src/component-factories.ts`):
+
+| Hook | Replaces | Used by |
+|------|----------|---------|
+| `useBoundField<T>` | `useBoundProp` + `useState` + `isBound` pattern (5 lines → 1 call) | Tabs, Slider, Toggle, ToggleGroup, ButtonGroup |
+| `useFormField<T>` | `useBoundField` + `useFieldValidation` pattern (10 lines → 1 call) | Input, Textarea, Select, Checkbox, Radio, Switch |
+
+All 3 packages (shadcn, MUI, Carbon) have been refactored — 12 components per package now use the factory hooks. Line counts after refactoring:
+
+| Package | Before | After | Saved |
+|---------|--------|-------|-------|
+| shadcn  | 1247   | 1188  | 59    |
+| MUI     | 1204   | 1143  | 61    |
+| Carbon  | 1191   | 1130  | 61    |
+
+The `design-system-builder` skill has been updated to teach agents the factory hook patterns.
+
 ## Completed
 
 - [x] Install MUI deps (`pnpm install` from root)
@@ -107,14 +128,18 @@ const { registry } = defineRegistry(catalog, {
 - [x] Build the MUI package — CJS + ESM + DTS
 - [x] Extract shared catalog to `@json-render/core/standard-catalog`
 - [x] MUI catalog re-exports from standard-catalog (no duplication)
+- [x] Create a Cursor skill for the design-system-builder pattern (`skills/design-system-builder/SKILL.md`)
+- [x] Build `useBoundField` and `useFormField` factory hooks in `@json-render/react`
+- [x] Refactor shadcn, MUI, and Carbon to use factory hooks
+- [x] Update design-system-builder skill with factory hook patterns
 
 ## Next Steps
 
-- [x] Create a Cursor skill for the design-system-builder pattern (`skills/design-system-builder/SKILL.md`)
 - [ ] Create individual skills per design system (MUI first)
 - [ ] Add Bootstrap as the next design system
 - [ ] Migrate shadcn catalog to also re-export from standard-catalog
 - [ ] Add an example app that demos swapping between shadcn and MUI
+- [ ] Consider a `npx @json-render/create-design-system <name>` CLI tool
 
 ## Environment Notes
 

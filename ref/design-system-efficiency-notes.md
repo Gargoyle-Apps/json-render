@@ -1,21 +1,34 @@
 # Design System Mapping - Efficiency & Templatization Notes
 
-Notes for a future chat on making the design system builder more efficient, 
-potentially turning into a more powerful skill or automated tool.
+Notes on making the design system builder more efficient. Steps 1-5 from the 
+original plan have been completed. This file now serves as a record of what was 
+done and what could still be explored.
 
-## Current State
+## Current State (Updated)
 
-We have 3 design system packages (shadcn, MUI, Carbon) each with a ~1000-line 
-`components.tsx` that maps 36 standard components to library-specific implementations.
-The catalog (Zod schemas) is already shared via `@json-render/core/standard-catalog`.
-The problem is the component implementations — they're 90% identical logic with 
-library-specific JSX sprinkled in.
+We have 3 design system packages (shadcn, MUI, Carbon) that map 36 standard 
+components to library-specific implementations. The catalog (Zod schemas) is 
+shared via `@json-render/core/standard-catalog`.
 
-## What's Repeated Across Every Package
+**Completed:** Two factory hooks (`useBoundField`, `useFormField`) now live in 
+`@json-render/react` and eliminate the repeated state-binding and validation 
+boilerplate. All 3 packages have been refactored to use them (12 components 
+per package). The `design-system-builder` skill has been updated.
 
-### 1. Bound vs Local State Boilerplate
+| Package | Before | After | Saved |
+|---------|--------|-------|-------|
+| shadcn  | 1247   | 1188  | 59    |
+| MUI     | 1204   | 1143  | 61    |
+| Carbon  | 1191   | 1130  | 61    |
 
-Every form component repeats this exact pattern:
+The remaining ~1100-1200 lines per package are primarily library-specific JSX, 
+variant/size mappings, and structural patterns that are inherently per-library.
+
+## What Was Repeated (Now Solved)
+
+### 1. Bound vs Local State Boilerplate — SOLVED with `useBoundField`
+
+Previously every form component repeated this 5-line pattern:
 
 ```tsx
 const [boundValue, setBoundValue] = useBoundProp<string>(props.value, bindings?.value);
@@ -25,12 +38,17 @@ const value = isBound ? (boundValue ?? "") : localValue;
 const setValue = isBound ? setBoundValue : setLocalValue;
 ```
 
-This appears 10+ times per package (Input, Textarea, Select, Checkbox, Radio, 
-Switch, Slider, Toggle, ToggleGroup, ButtonGroup, Pagination, DropdownMenu, Tabs).
+Now replaced with:
 
-### 2. Validation Boilerplate
+```tsx
+const [value, setValue] = useBoundField<string>(props.value, bindings?.value, "");
+```
 
-Every form component repeats:
+Used by: Tabs, Slider, Toggle, ToggleGroup, ButtonGroup (11 components per pkg).
+
+### 2. Validation Boilerplate — SOLVED with `useFormField`
+
+Previously every form component also added:
 
 ```tsx
 const validateOn = props.validateOn ?? "blur";
@@ -41,7 +59,19 @@ const { errors, validate } = useFieldValidation(
 );
 ```
 
-### 3. Variant Mapping
+Now the full bound-state + validation pattern is a single call:
+
+```tsx
+const { value, setValue, errors, validate, hasValidation, validateOn } =
+  useFormField<string>(props.value, bindings?.value, "", {
+    checks: props.checks ?? undefined,
+    validateOn: props.validateOn ?? "blur",
+  });
+```
+
+Used by: Input, Textarea, Select, Checkbox, Radio, Switch (6 components per pkg).
+
+### 3. Variant Mapping (Still Per-Library)
 
 Every package maps the same abstract variants to library-specific values:
 - `primary` / `secondary` / `danger` → MUI: `contained`/`outlined` + `primary`/`secondary`/`error`, Carbon: `primary`/`secondary`/`danger`
@@ -229,20 +259,35 @@ Too library-specific for factories:
 
 ## File Size Comparison
 
-| Package | components.tsx lines | Unique JSX lines (est.) | Boilerplate lines (est.) |
-|---------|---------------------|------------------------|-------------------------|
-| shadcn  | ~1246               | ~500                   | ~746                    |
-| MUI     | ~1204               | ~480                   | ~724                    |
-| Carbon  | ~1132               | ~450                   | ~682                    |
+| Package | Original | After factory hooks | Savings |
+|---------|----------|-------------------|---------|
+| shadcn  | 1247     | 1188              | 59      |
+| MUI     | 1204     | 1143              | 61      |
+| Carbon  | 1191     | 1130              | 61      |
 
-~60% of each file is repeated boilerplate. With factories, each package could 
-be ~450-500 lines instead of ~1200.
+The hook-level refactoring saved ~60 lines per package. The remaining lines are 
+mostly library-specific JSX that can't be abstracted without a code generator.
 
-## Next Steps for Future Chat
+## Completed Steps
 
-1. Build `createBoundField` and `createBoundCheckbox` factory hooks in core
-2. Build `createFormComponent` and `createActionComponent` factory wrappers
-3. Refactor MUI and Carbon to use factories as proof of concept
-4. Measure line reduction and developer experience
-5. Update the design-system-builder skill with factory patterns
+1. ~~Build `createBoundField` and `createBoundCheckbox` factory hooks in core~~
+   **Done** — `useBoundField<T>` and `useFormField<T>` in `@json-render/react`
+   (file: `packages/react/src/component-factories.ts`)
+2. ~~Build `createFormComponent` and `createActionComponent` factory wrappers~~
+   **Simplified** — `useFormField` handles all form components; higher-order 
+   component factories were not needed since the hook approach is cleaner
+3. ~~Refactor MUI and Carbon to use factories as proof of concept~~
+   **Done** — All 3 packages (shadcn, MUI, Carbon) refactored
+4. ~~Measure line reduction and developer experience~~
+   **Done** — ~60 lines saved per package, 12 components per package simplified
+5. ~~Update the design-system-builder skill with factory patterns~~
+   **Done** — `skills/design-system-builder/SKILL.md` updated with hook usage 
+   tables, code examples, and component-by-hook-category mapping
+
+## Remaining Ideas (Future Work)
+
 6. Consider a `npx @json-render/create-design-system <name>` CLI tool
+7. Option 3 (mapping table + code generator) could further reduce per-library 
+   work for structurally simple components (Card, Stack, Grid, etc.)
+8. Option 2's higher-order component factories could be revisited if a pattern 
+   emerges where the JSX wrapper is truly mechanical across libraries

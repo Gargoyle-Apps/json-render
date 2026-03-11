@@ -107,3 +107,11 @@ export {
   type DataPart,
   type TokenUsage,
 } from "./hooks";
+
+// Component factories
+export {
+  useBoundField,
+  useFormField,
+  type UseFormFieldOptions,
+  type UseFormFieldReturn,
+} from "./component-factories";

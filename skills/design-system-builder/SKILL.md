@@ -57,12 +57,19 @@ export {
 
 ### 4. Create components.tsx
 
-This is the main work. Follow the pattern in `packages/mui/src/components.tsx`:
-
-**Component signature** — Every component receives `BaseComponentProps<Props>`:
+This is the main work. Import the factory hooks and the target library's components:
 
 ```typescript
-import { useBoundProp, useStateBinding, useFieldValidation, type BaseComponentProps } from "@json-render/react";
+"use client";
+
+import { useState } from "react";
+import {
+  useBoundProp,
+  useBoundField,
+  useFormField,
+  useStateBinding,
+  type BaseComponentProps,
+} from "@json-render/react";
 import { type <Name>Props } from "./catalog";
 
 export const <name>Components = {
@@ -72,32 +79,165 @@ export const <name>Components = {
 };
 ```
 
-**Key hooks from `@json-render/react`:**
+#### Factory hooks
 
-| Hook | Use for | Example |
-|------|---------|---------|
-| `useBoundProp<T>(staticValue, binding)` | Two-way state binding on form fields | `const [value, setValue] = useBoundProp<string>(props.value, bindings?.value)` |
-| `useStateBinding<T>(path)` | Direct state path binding (Dialog/Drawer open) | `const [open, setOpen] = useStateBinding<boolean>(props.openPath)` |
-| `useFieldValidation(binding, config)` | Form validation with checks/timing | `const { errors, validate } = useFieldValidation(bindings?.value, { checks, validateOn })` |
+Use these hooks from `@json-render/react` to eliminate boilerplate:
 
-**Bound vs local state pattern** — Every form component needs:
+| Hook | Use for | Components |
+|------|---------|------------|
+| `useFormField<T>` | Bound field + validation | Input, Textarea, Select, Checkbox, Radio, Switch |
+| `useBoundField<T>` | Bound-or-local state (no validation) | Tabs, Slider, Toggle, ToggleGroup, ButtonGroup |
+| `useBoundProp<T>` | Write-only binding (no local fallback) | DropdownMenu, Pagination |
+| `useStateBinding<T>` | Direct state path binding | Dialog, Drawer |
+
+#### Form components — use `useFormField`
+
+For Input, Textarea, Select, Checkbox, Radio, Switch:
 
 ```typescript
-const [boundValue, setBoundValue] = useBoundProp<string>(props.value, bindings?.value);
-const [localValue, setLocalValue] = useState("");
-const isBound = !!bindings?.value;
-const value = isBound ? (boundValue ?? "") : localValue;
-const setValue = isBound ? setBoundValue : setLocalValue;
+Input: ({ props, bindings, emit }: BaseComponentProps<<Name>Props<"Input">>) => {
+  const { value, setValue, errors, validate, hasValidation, validateOn } =
+    useFormField<string>(props.value as string | undefined, bindings?.value, "", {
+      checks: props.checks ?? undefined,
+      validateOn: props.validateOn ?? "blur",
+    });
+
+  return (
+    <LibInput
+      value={value}
+      onChange={(e) => {
+        setValue(e.target.value);
+        if (hasValidation && validateOn === "change") validate();
+      }}
+      onBlur={() => {
+        if (hasValidation && validateOn === "blur") validate();
+        emit("blur");
+      }}
+      onKeyDown={(e) => { if (e.key === "Enter") emit("submit"); }}
+      onFocus={() => emit("focus")}
+      error={errors.length > 0}
+      errorText={errors[0]}
+    />
+  );
+},
 ```
 
-**Event emission:**
+For Checkbox/Switch (boolean, `bindings?.checked`):
+
+```typescript
+Checkbox: ({ props, bindings, emit }: BaseComponentProps<<Name>Props<"Checkbox">>) => {
+  const {
+    value: checked,
+    setValue: setChecked,
+    errors,
+    validate,
+    hasValidation,
+    validateOn,
+  } = useFormField<boolean>(
+    props.checked as boolean | undefined,
+    bindings?.checked,
+    !!props.checked,
+    { checks: props.checks ?? undefined, validateOn: props.validateOn ?? "change" },
+  );
+
+  return (
+    <LibCheckbox
+      checked={checked}
+      onChange={(c) => {
+        setChecked(c);
+        if (hasValidation && validateOn === "change") validate();
+        emit("change");
+      }}
+      label={props.label}
+    />
+  );
+},
+```
+
+**Default `validateOn` per component:**
+- `"blur"` — Input, Textarea
+- `"change"` — Select, Checkbox, Radio, Switch
+
+#### Bound-only components — use `useBoundField`
+
+For Tabs, Slider, Toggle, ToggleGroup, ButtonGroup:
+
+```typescript
+Tabs: ({ props, children, bindings, emit }: BaseComponentProps<<Name>Props<"Tabs">>) => {
+  const tabs = props.tabs ?? [];
+  const [value, setValue] = useBoundField<string>(
+    props.value as string | undefined,
+    bindings?.value,
+    props.defaultValue ?? tabs[0]?.value ?? "",
+  );
+
+  return (
+    <LibTabs value={value} onChange={(v) => { setValue(v); emit("change"); }}>
+      {/* tab items */}
+    </LibTabs>
+  );
+},
+
+Toggle: ({ props, bindings, emit }: BaseComponentProps<<Name>Props<"Toggle">>) => {
+  const [pressed, setPressed] = useBoundField<boolean>(
+    props.pressed as boolean | undefined,
+    bindings?.pressed,
+    props.pressed ?? false,
+  );
+  // ...
+},
+
+Slider: ({ props, bindings, emit }: BaseComponentProps<<Name>Props<"Slider">>) => {
+  const [value, setValue] = useBoundField<number>(
+    props.value as number | undefined,
+    bindings?.value,
+    props.min ?? 0,
+  );
+  // ...
+},
+```
+
+#### State-bound components — use `useStateBinding`
+
+For Dialog and Drawer:
+
+```typescript
+Dialog: ({ props, children }: BaseComponentProps<<Name>Props<"Dialog">>) => {
+  const [open, setOpen] = useStateBinding<boolean>(props.openPath ?? "");
+  return (
+    <LibDialog open={open ?? false} onClose={() => setOpen(false)}>
+      {/* title, description, children */}
+    </LibDialog>
+  );
+},
+```
+
+#### Write-only bindings — use `useBoundProp`
+
+For DropdownMenu and Pagination (only need the setter, not local state):
+
+```typescript
+DropdownMenu: ({ props, bindings, emit }: BaseComponentProps<<Name>Props<"DropdownMenu">>) => {
+  const [, setBoundValue] = useBoundProp<string>(
+    props.value as string | undefined,
+    bindings?.value,
+  );
+  // ...
+},
+```
+
+#### Event emission
+
 - `emit("press")` — Button click
 - `emit("change")` — Value changes (Select, Toggle, etc.)
 - `emit("submit")` — Enter key in Input
 - `emit("focus")`, `emit("blur")` — Input focus events
+- `emit("select")` — DropdownMenu item selection
 - `on("press")` — For Link (checks `shouldPreventDefault`)
 
-**Variant mapping** — Map abstract variants to library-specific ones:
+#### Variant mapping
+
+Map abstract variants to library-specific ones:
 - `primary` / `secondary` / `danger` -> library's variant/color system
 - `default` / `outline` -> library's styling variants
 
@@ -121,6 +261,20 @@ Implement all of these. Reference `packages/mui/src/components.tsx` for the comp
 **Form Inputs:** Input, Textarea, Select, Checkbox, Radio, Switch, Slider
 **Actions:** Button, Link, DropdownMenu, Toggle, ToggleGroup, ButtonGroup, Pagination
 
+## Component categories by hook usage
+
+| Category | Hook | Components |
+|----------|------|------------|
+| Form inputs (string) | `useFormField<string>` | Input, Textarea, Select, Radio |
+| Form inputs (boolean) | `useFormField<boolean>` | Checkbox, Switch |
+| Bound selection | `useBoundField<string>` | Tabs, ToggleGroup, ButtonGroup |
+| Bound toggle | `useBoundField<boolean>` | Toggle |
+| Bound number | `useBoundField<number>` | Slider |
+| State-bound overlays | `useStateBinding<boolean>` | Dialog, Drawer |
+| Write-only binding | `useBoundProp<string>` | DropdownMenu |
+| Write-only binding | `useBoundProp<number>` | Pagination |
+| No state | (none) | Card, Stack, Grid, Separator, Accordion, Collapsible, Carousel, Table, Heading, Text, Image, Avatar, Badge, Alert, Progress, Skeleton, Spinner, Tooltip, Popover, Button, Link |
+
 ## Reference files
 
 When building a new design system, read these files for the complete patterns:
@@ -129,3 +283,4 @@ When building a new design system, read these files for the complete patterns:
 - `packages/mui/src/catalog.ts` — How to re-export from standard-catalog
 - `packages/mui/package.json` — Package structure template
 - `packages/core/src/standard-catalog.ts` — The shared component definitions
+- `packages/react/src/component-factories.ts` — Factory hook implementations

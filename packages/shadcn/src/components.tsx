@@ -3,8 +3,9 @@
 import { useState } from "react";
 import {
   useBoundProp,
+  useBoundField,
+  useFormField,
   useStateBinding,
-  useFieldValidation,
   type BaseComponentProps,
 } from "@json-render/react";
 
@@ -272,16 +273,11 @@ export const shadcnComponents = {
     emit,
   }: BaseComponentProps<ShadcnProps<"Tabs">>) => {
     const tabs = props.tabs ?? [];
-    const [boundValue, setBoundValue] = useBoundProp<string>(
+    const [value, setValue] = useBoundField<string>(
       props.value as string | undefined,
       bindings?.value,
-    );
-    const [localValue, setLocalValue] = useState(
       props.defaultValue ?? tabs[0]?.value ?? "",
     );
-    const isBound = !!bindings?.value;
-    const value = isBound ? (boundValue ?? tabs[0]?.value ?? "") : localValue;
-    const setValue = isBound ? setBoundValue : setLocalValue;
 
     return (
       <TabsPrimitive
@@ -656,21 +652,16 @@ export const shadcnComponents = {
     bindings,
     emit,
   }: BaseComponentProps<ShadcnProps<"Input">>) => {
-    const [boundValue, setBoundValue] = useBoundProp<string>(
-      props.value as string | undefined,
-      bindings?.value,
-    );
-    const [localValue, setLocalValue] = useState("");
-    const isBound = !!bindings?.value;
-    const value = isBound ? (boundValue ?? "") : localValue;
-    const setValue = isBound ? setBoundValue : setLocalValue;
-    const validateOn = props.validateOn ?? "blur";
-
-    const hasValidation = !!(bindings?.value && props.checks?.length);
-    const { errors, validate } = useFieldValidation(
-      bindings?.value ?? "",
-      hasValidation ? { checks: props.checks ?? [], validateOn } : undefined,
-    );
+    const { value, setValue, errors, validate, hasValidation, validateOn } =
+      useFormField<string>(
+        props.value as string | undefined,
+        bindings?.value,
+        "",
+        {
+          checks: props.checks ?? undefined,
+          validateOn: props.validateOn ?? "blur",
+        },
+      );
 
     return (
       <div className="space-y-2">
@@ -707,21 +698,16 @@ export const shadcnComponents = {
     props,
     bindings,
   }: BaseComponentProps<ShadcnProps<"Textarea">>) => {
-    const [boundValue, setBoundValue] = useBoundProp<string>(
-      props.value as string | undefined,
-      bindings?.value,
-    );
-    const [localValue, setLocalValue] = useState("");
-    const isBound = !!bindings?.value;
-    const value = isBound ? (boundValue ?? "") : localValue;
-    const setValue = isBound ? setBoundValue : setLocalValue;
-    const validateOn = props.validateOn ?? "blur";
-
-    const hasValidation = !!(bindings?.value && props.checks?.length);
-    const { errors, validate } = useFieldValidation(
-      bindings?.value ?? "",
-      hasValidation ? { checks: props.checks ?? [], validateOn } : undefined,
-    );
+    const { value, setValue, errors, validate, hasValidation, validateOn } =
+      useFormField<string>(
+        props.value as string | undefined,
+        bindings?.value,
+        "",
+        {
+          checks: props.checks ?? undefined,
+          validateOn: props.validateOn ?? "blur",
+        },
+      );
 
     return (
       <div className="space-y-2">
@@ -754,24 +740,19 @@ export const shadcnComponents = {
     bindings,
     emit,
   }: BaseComponentProps<ShadcnProps<"Select">>) => {
-    const [boundValue, setBoundValue] = useBoundProp<string>(
-      props.value as string | undefined,
-      bindings?.value,
-    );
-    const [localValue, setLocalValue] = useState<string>("");
-    const isBound = !!bindings?.value;
-    const value = isBound ? (boundValue ?? "") : localValue;
-    const setValue = isBound ? setBoundValue : setLocalValue;
+    const { value, setValue, errors, validate, hasValidation, validateOn } =
+      useFormField<string>(
+        props.value as string | undefined,
+        bindings?.value,
+        "",
+        {
+          checks: props.checks ?? undefined,
+          validateOn: props.validateOn ?? "change",
+        },
+      );
     const rawOptions = props.options ?? [];
     const options = rawOptions.map((opt) =>
       typeof opt === "string" ? opt : String(opt ?? ""),
-    );
-    const validateOn = props.validateOn ?? "change";
-
-    const hasValidation = !!(bindings?.value && props.checks?.length);
-    const { errors, validate } = useFieldValidation(
-      bindings?.value ?? "",
-      hasValidation ? { checks: props.checks ?? [], validateOn } : undefined,
     );
 
     return (
@@ -809,20 +790,21 @@ export const shadcnComponents = {
     bindings,
     emit,
   }: BaseComponentProps<ShadcnProps<"Checkbox">>) => {
-    const [boundChecked, setBoundChecked] = useBoundProp<boolean>(
+    const {
+      value: checked,
+      setValue: setChecked,
+      errors,
+      validate,
+      hasValidation,
+      validateOn,
+    } = useFormField<boolean>(
       props.checked as boolean | undefined,
       bindings?.checked,
-    );
-    const [localChecked, setLocalChecked] = useState(!!props.checked);
-    const isBound = !!bindings?.checked;
-    const checked = isBound ? (boundChecked ?? false) : localChecked;
-    const setChecked = isBound ? setBoundChecked : setLocalChecked;
-
-    const validateOn = props.validateOn ?? "change";
-    const hasValidation = !!(bindings?.checked && props.checks?.length);
-    const { errors, validate } = useFieldValidation(
-      bindings?.checked ?? "",
-      hasValidation ? { checks: props.checks ?? [], validateOn } : undefined,
+      !!props.checked,
+      {
+        checks: props.checks ?? undefined,
+        validateOn: props.validateOn ?? "change",
+      },
     );
 
     return (
@@ -857,21 +839,16 @@ export const shadcnComponents = {
     const options = rawOptions.map((opt) =>
       typeof opt === "string" ? opt : String(opt ?? ""),
     );
-    const [boundValue, setBoundValue] = useBoundProp<string>(
-      props.value as string | undefined,
-      bindings?.value,
-    );
-    const [localValue, setLocalValue] = useState(options[0] ?? "");
-    const isBound = !!bindings?.value;
-    const value = isBound ? (boundValue ?? "") : localValue;
-    const setValue = isBound ? setBoundValue : setLocalValue;
-
-    const validateOn = props.validateOn ?? "change";
-    const hasValidation = !!(bindings?.value && props.checks?.length);
-    const { errors, validate } = useFieldValidation(
-      bindings?.value ?? "",
-      hasValidation ? { checks: props.checks ?? [], validateOn } : undefined,
-    );
+    const { value, setValue, errors, validate, hasValidation, validateOn } =
+      useFormField<string>(
+        props.value as string | undefined,
+        bindings?.value,
+        options[0] ?? "",
+        {
+          checks: props.checks ?? undefined,
+          validateOn: props.validateOn ?? "change",
+        },
+      );
 
     return (
       <div className="space-y-2">
@@ -911,20 +888,21 @@ export const shadcnComponents = {
     bindings,
     emit,
   }: BaseComponentProps<ShadcnProps<"Switch">>) => {
-    const [boundChecked, setBoundChecked] = useBoundProp<boolean>(
+    const {
+      value: checked,
+      setValue: setChecked,
+      errors,
+      validate,
+      hasValidation,
+      validateOn,
+    } = useFormField<boolean>(
       props.checked as boolean | undefined,
       bindings?.checked,
-    );
-    const [localChecked, setLocalChecked] = useState(!!props.checked);
-    const isBound = !!bindings?.checked;
-    const checked = isBound ? (boundChecked ?? false) : localChecked;
-    const setChecked = isBound ? setBoundChecked : setLocalChecked;
-
-    const validateOn = props.validateOn ?? "change";
-    const hasValidation = !!(bindings?.checked && props.checks?.length);
-    const { errors, validate } = useFieldValidation(
-      bindings?.checked ?? "",
-      hasValidation ? { checks: props.checks ?? [], validateOn } : undefined,
+      !!props.checked,
+      {
+        checks: props.checks ?? undefined,
+        validateOn: props.validateOn ?? "change",
+      },
     );
 
     return (
@@ -955,14 +933,11 @@ export const shadcnComponents = {
     bindings,
     emit,
   }: BaseComponentProps<ShadcnProps<"Slider">>) => {
-    const [boundValue, setBoundValue] = useBoundProp<number>(
+    const [value, setValue] = useBoundField<number>(
       props.value as number | undefined,
       bindings?.value,
+      props.min ?? 0,
     );
-    const [localValue, setLocalValue] = useState(props.min ?? 0);
-    const isBound = !!bindings?.value;
-    const value = isBound ? (boundValue ?? props.min ?? 0) : localValue;
-    const setValue = isBound ? setBoundValue : setLocalValue;
 
     return (
       <div className="space-y-2">
@@ -1060,14 +1035,11 @@ export const shadcnComponents = {
     bindings,
     emit,
   }: BaseComponentProps<ShadcnProps<"Toggle">>) => {
-    const [boundPressed, setBoundPressed] = useBoundProp<boolean>(
+    const [pressed, setPressed] = useBoundField<boolean>(
       props.pressed as boolean | undefined,
       bindings?.pressed,
+      props.pressed ?? false,
     );
-    const [localPressed, setLocalPressed] = useState(props.pressed ?? false);
-    const isBound = !!bindings?.pressed;
-    const pressed = isBound ? (boundPressed ?? false) : localPressed;
-    const setPressed = isBound ? setBoundPressed : setLocalPressed;
 
     return (
       <Toggle
@@ -1090,14 +1062,11 @@ export const shadcnComponents = {
   }: BaseComponentProps<ShadcnProps<"ToggleGroup">>) => {
     const type = props.type ?? "single";
     const items = props.items ?? [];
-    const [boundValue, setBoundValue] = useBoundProp<string>(
+    const [value, setValue] = useBoundField<string>(
       props.value as string | undefined,
       bindings?.value,
+      items[0]?.value ?? "",
     );
-    const [localValue, setLocalValue] = useState(items[0]?.value ?? "");
-    const isBound = !!bindings?.value;
-    const value = isBound ? (boundValue ?? "") : localValue;
-    const setValue = isBound ? setBoundValue : setLocalValue;
 
     if (type === "multiple") {
       const selected = value ? value.split(",").filter(Boolean) : [];
@@ -1145,14 +1114,11 @@ export const shadcnComponents = {
     emit,
   }: BaseComponentProps<ShadcnProps<"ButtonGroup">>) => {
     const buttons = props.buttons ?? [];
-    const [boundSelected, setBoundSelected] = useBoundProp<string>(
+    const [value, setValue] = useBoundField<string>(
       props.selected as string | undefined,
       bindings?.selected,
+      buttons[0]?.value ?? "",
     );
-    const [localValue, setLocalValue] = useState(buttons[0]?.value ?? "");
-    const isBound = !!bindings?.selected;
-    const value = isBound ? (boundSelected ?? "") : localValue;
-    const setValue = isBound ? setBoundSelected : setLocalValue;
 
     return (
       <div className="inline-flex rounded-md border border-border">
