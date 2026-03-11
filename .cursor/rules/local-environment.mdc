@@ -1,0 +1,36 @@
+---
+description: Local environment setup and dependency installation details
+alwaysApply: true
+---
+
+# Local Environment
+
+## Package Manager
+
+- **pnpm** is installed via Homebrew (`brew install pnpm`), available at `/opt/homebrew/bin/pnpm`
+- The shell also has an Aikido security wrapper (`aikido-pnpm`) that intercepts `pnpm` as a shell function. Direct binary lookup may resolve the wrapper, not the Homebrew binary.
+- The repo declares `"packageManager": "pnpm@10.29.3"` in `package.json`.
+
+## Build Tool
+
+- **Turborepo** (`turbo`) is installed globally via npm (`npm install -g turbo`), available at `/opt/homebrew/bin/turbo`
+- A local `turbo` is also installed as a devDependency (v2.7.4) via `pnpm install`
+- `pnpm build` delegates to `turbo run build`
+
+## Installing Dependencies
+
+- Run `pnpm install` from the repo root — this installs all 2,246 packages across 39 workspace projects
+- Requires unrestricted permissions (no sandbox) to actually write to `node_modules`
+- Some native build scripts are ignored by default (esbuild, sharp, etc.) — run `pnpm approve-builds` if needed
+
+## Building
+
+- Run `pnpm build` from the repo root to build all packages and examples via Turborepo
+- Build order is managed by Turborepo based on `dependsOn: ["^build"]` in `turbo.json`
+- The MCP example (`examples/mcp`) needs a successful build to produce `dist/index.html`, which the MCP server loads at startup
+
+## Dev Servers
+
+- All dev servers use [portless](https://github.com/vercel-labs/portless) for automatic port assignment via `.localhost:1355` URLs
+- `portless` must be installed globally (not as a project dependency)
+- Run `pnpm dev` from the root to start all dev servers via Turborepo

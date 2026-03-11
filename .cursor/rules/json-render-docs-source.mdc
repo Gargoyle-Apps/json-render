@@ -1,0 +1,13 @@
+---
+description: Use json-render.dev/docs as source of truth for this repo
+alwaysApply: true
+---
+
+# json-render docs as source of truth
+
+When working in this repository, treat the official documentation as the authoritative reference.
+
+- **Source of truth**: https://json-render.dev/docs
+- **Scope**: Concepts, APIs, patterns, and behavior for json-render (catalog, specs, registry, streaming, data binding, visibility, renderers, etc.) should align with what is documented there.
+- **When answering or implementing**: Prefer definitions and behavior from the docs over local code or assumptions. If the codebase and docs conflict, treat the docs as correct unless there is a clear reason (e.g. intentional unreleased change) to do otherwise.
+- **When unsure**: Fetch or consult the docs at https://json-render.dev/docs (and relevant subpaths) to confirm terminology, API surface, and intended usage before giving guidance or making changes.

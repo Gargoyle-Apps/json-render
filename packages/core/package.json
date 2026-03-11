@@ -39,6 +39,11 @@
       "types": "./dist/store-utils.d.ts",
       "import": "./dist/store-utils.mjs",
       "require": "./dist/store-utils.js"
+    },
+    "./standard-catalog": {
+      "types": "./dist/standard-catalog.d.ts",
+      "import": "./dist/standard-catalog.mjs",
+      "require": "./dist/standard-catalog.js"
     }
   },
   "files": [

@@ -39,6 +39,7 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+ref/
 
 # opensrc - source code for packages
 opensrc/
