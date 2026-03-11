@@ -284,10 +284,62 @@ mostly library-specific JSX that can't be abstracted without a code generator.
    **Done** — `skills/design-system-builder/SKILL.md` updated with hook usage 
    tables, code examples, and component-by-hook-category mapping
 
+## Design System Translator Tool (Built)
+
+The "Option 4: Hybrid" approach has been implemented as a standalone tool at
+`tools/design-system-generator/`. This is the foundation for the `json-render-adapters`
+repository — a translator tool that helps convert design systems to work with
+json-render using structured mappings.
+
+### How it works
+
+1. A `DesignSystemMapping` type defines how a UI library maps to the 36 standard
+   components — imports, prop translations, value mappings, and JSX overrides
+2. Each mapping is a TypeScript file in `tools/design-system-generator/mappings/`
+3. A generator script reads a mapping and produces a complete `@json-render/<name>`
+   package (package.json, tsconfig, catalog, index, and components.tsx)
+4. The `SKILL.md` teaches LLMs how to create and update mappings
+
+### Component mapping types
+
+- **`DataDrivenMapping`** — For simple components (Badge, Alert, Input, Checkbox)
+  where prop/value translation tables are sufficient. The generator handles the
+  JSX structure automatically.
+- **`RenderOverrideMapping`** — For complex components (Card, Table, Tabs, Carousel)
+  where the JSX structure varies too much between libraries. The mapping contains
+  the complete render function body.
+
+### Shipped mappings
+
+| Library | Mapping file | Status |
+|---------|-------------|--------|
+| Ant Design 5.x | `mappings/antd.ts` | Complete (extracted from hand-written package) |
+
+### Vision
+
+This tool is designed to be used by LLMs:
+- Ships with proven mappings out of the box (antd, and later shadcn, MUI, Carbon)
+- LLMs can create new mappings by reading a library's docs and filling in the
+  structured format
+- LLMs can update existing mappings when a library releases a new version
+- The mapping format is the single source of truth for each adapter; regenerate
+  the package any time the mapping changes
+
+### Files
+
+```
+tools/design-system-generator/
+  src/types.ts      — DesignSystemMapping interface
+  src/generate.ts   — Generator: mapping -> complete package
+  mappings/antd.ts  — Reference mapping (Ant Design)
+  SKILL.md          — Instructions for LLMs
+  package.json      — Tool dependencies (tsx)
+  tsconfig.json     — TypeScript config
+```
+
 ## Remaining Ideas (Future Work)
 
-6. Consider a `npx @json-render/create-design-system <name>` CLI tool
-7. Option 3 (mapping table + code generator) could further reduce per-library 
-   work for structurally simple components (Card, Stack, Grid, etc.)
-8. Option 2's higher-order component factories could be revisited if a pattern 
-   emerges where the JSX wrapper is truly mechanical across libraries
+- Extract shadcn, MUI, and Carbon mappings from existing packages
+- Add a `npx @json-render/create-design-system <name>` CLI wrapper
+- Web UI for interactive mapping creation (drag-and-drop prop mapping)
+- AI-powered workflow: paste a library's docs URL, auto-generate mapping
